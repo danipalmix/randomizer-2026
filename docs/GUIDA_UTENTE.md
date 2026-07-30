@@ -1,24 +1,45 @@
 # Guida utente — LayerForge NFT Studio
 
-1. **Progetto:** imposta identità, dimensioni, quantità e seed; salva un file `.layerforge` con backup.
-2. **Asset:** scegli una cartella con sottocartelle numerate. Gli originali non vengono modificati; file illeggibili vengono disattivati.
-3. **Rarità:** regola presenza e peso. Un peso zero esclude il tratto.
-4. **Regole:** crea esclusioni, requisiti e forzature; le contraddizioni bloccano la generazione.
-5. **Compositore:** registra NFT speciali 1/1 con token ID riservato.
-6. **Anteprima:** genera campioni deterministici da 1 a 100 elementi.
-7. **Generazione:** controlla la stima combinatoria e crea DNA unici.
-8. **Metadata:** seleziona EVM, Solana, MultiversX o Cardano e verifica royalty/creator.
-9. **Statistiche:** confronta conteggi e unicità.
-10. **Esportazione:** scegli una destinazione nuova; l'app crea metadata, CSV, report, manifest e snapshot.
+## 1. Impostazioni
+
+Definisci nome, simbolo, descrizione, quantità, ID iniziale, tela, seed, formato e profilo blockchain. **Salva** crea un file `.layerforge` e un backup affiancato. Annulla e Ripristina conservano le ultime 30 modifiche; l'autosalvataggio locale protegge dagli arresti.
+
+## 2. Organizza
+
+Le schede superiori rappresentano gruppi o personaggi. `+` crea un grafo indipendente; i comandi accanto allo stato del grafo rinominano, duplicano o eliminano il gruppo.
+
+Seleziona un nodo layer e trascina file o una cartella nella dropzone. “Asset personalizzato” crea un trait senza immagine, presente soltanto nei metadata. “Gestisci” apre dettagli, rarità, asset e tabella delle regole.
+
+### Grafo avanzato
+
+Il progetto demo contiene il caso completo:
+
+- Start → Background al 50%;
+- Background → tre rami al 33,3%, 33,3% e 33,4%;
+- ciascun ramo attraversa due layer;
+- Start → Layer 9 al 50%;
+- tutti e quattro i percorsi convergono in End.
+
+Premi `+` sulla porta destra di un nodo e poi il nodo destinazione per creare un collegamento. Seleziona un nodo per modificare le sue uscite; **Distribuisci equamente** gestisce il resto decimale e **Normalizza a 100%** conserva i rapporti. Una somma errata blocca la generazione.
+
+Il canvas supporta trascinamento dei nodi, zoom con rotella, mini-mappa, centratura, adattamento e layout automatico. Il doppio clic apre la gestione layer. “Anteprima rapida” mostra il solo percorso estratto, probabilità complessiva, regole e metadata.
+
+### Modalità semplice
+
+Disattiva “Modalità avanzata” per una lista ordinata. Se esistono diramazioni la lista rimane consultabile in sola lettura, senza eliminare alcun dato.
+
+## 3. Anteprima
+
+Genera 1, 10, 25, 50 o 100 campioni. La galleria e il pannello dettagli mostrano token, probabilità, percorso, attributi e JSON. Lo stesso progetto e seed producono lo stesso risultato.
+
+## 4. Esporta
+
+Il controllo preliminare verifica grafo, regole e metadata. L'esportazione crea immagini composte con Sharp, JSON singoli e aggregati, CSV, rapporto percorsi, validazione, checksum, manifest e snapshot. Il nome e l'estensione URI coincidono con il file renderizzato.
 
 ## Preparare gli asset
 
-Usare tele della stessa dimensione, sfondo trasparente e nomi unici. Esempio: `01 Sfondo/Blu.svg`, `02 Corpo/Robot.svg`. L'ordine numerico va dal fondo al primo piano.
+Usa tele della stessa dimensione e trasparenza. Ordina le cartelle dal fondo al primo piano (`01 Sfondo`, `02 Corpo`). SVG viene rasterizzato da Sharp senza eseguire script. Gli originali non vengono modificati.
 
-## Recupero
+## Limiti dichiarati
 
-L'editor mantiene un autosalvataggio locale. Il comando Salva produce inoltre `<nome>.layerforge.backup`; rinominarlo in `.layerforge` per aprirlo.
-
-## Limitazioni reali della versione 1.0
-
-La composizione raster/animata e il rendering FFmpeg non sono ancora eseguiti nell'esportazione: questa versione esporta metadata e dati di collezione, ma non renderizza i file grafici finali. La modalità quantità esatta, i gruppi AND/OR, checkpoint pausa/ripresa, ZIP e modifica visuale delle trasformazioni non sono disponibili. Il build Windows da Linux può dipendere da Wine e dal download dei toolchain di electron-builder. Non viene effettuato alcun minting né upload.
+Il rendering statico PNG/WebP/JPEG è operativo. La composizione temporale di GIF/WebP animate/MP4 con FFmpeg, le quantità esatte con solver globale, la selezione multipla del canvas e la creazione ZIP non sono ancora disponibili. L'export produce una cartella completa. Il minting e gli upload restano intenzionalmente esterni e manuali.

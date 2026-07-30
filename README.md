@@ -1,17 +1,28 @@
 # LayerForge NFT Studio
 
-Applicazione desktop **offline e senza account** per progettare collezioni generative. L'interfaccia italiana guida attraverso progetto, asset, rarità, regole, composizione 1/1, anteprima, generazione, metadata, statistiche ed esportazione.
+LayerForge è uno studio desktop **offline, senza account e senza telemetria** per creare collezioni generative. Il flusso italiano in quattro fasi — Impostazioni, Organizza, Anteprima, Esporta — combina un grafo probabilistico ramificato, regole, DNA deterministico, rendering Sharp e metadata multichain.
 
-## Avvio sviluppo
+## Funzioni principali
+
+- grafo persistente con diramazioni, convergenze, percentuali modificabili e normalizzazione esatta;
+- gruppi/personaggi con peso, colore, grafo e regole indipendenti;
+- modalità semplice lineare e modalità avanzata senza perdita di dati;
+- import di PNG, WebP, JPEG, SVG, GIF e MP4 tramite selezione o drag-and-drop;
+- asset metadata-only testuali, numerici, percentuali, intervalli e valori fissi;
+- anteprima rapida con percorso, probabilità complessiva, regole, trait e JSON;
+- generazione deterministica con seed, percorsi nel DNA e controllo duplicati;
+- profili EVM/OpenSea, Solana/Metaplex, MultiversX e Cardano CIP-25;
+- rendering PNG/WebP/JPEG, CSV, report percorsi, checksum SHA-256, manifest e snapshot.
+
+## Avvio
 
 ```bash
 npm install
-npm run dev
+npm run dev       # interfaccia web, filesystem nativo disabilitato
+npm run electron  # applicazione desktop completa
 ```
 
-Nel browser le operazioni native di filesystem sono disabilitate; usare `npm run electron` per importare, salvare ed esportare.
-
-## Verifica e distribuzione
+## Verifica e distribuzione Windows
 
 ```bash
 npm test
@@ -21,14 +32,10 @@ npm run build
 npm run dist:win
 ```
 
-Gli artefatti Windows (installer NSIS e portabile) vengono creati in `release/`. L'app compilata non richiede Internet e non contiene telemetria, analytics, login, wallet o upload automatici.
+Gli installer NSIS e portabile vengono generati in `release/`. Dopo l'installazione non è richiesta alcuna connessione Internet.
 
-## Sicurezza e privacy
+## Sicurezza
 
-Electron usa isolamento del contesto, renderer senza Node, sandbox, preload con quattro sole operazioni autorizzate e verifica delle radici selezionate. I progetti sono salvati atomicamente con backup affiancato. Nessun dato viene trasmesso.
+Electron usa `contextIsolation`, sandbox, renderer senza Node, blocco di navigazioni esterne e un preload ristretto. I percorsi sono autorizzati solo dopo una selezione esplicita; i progetti usano scrittura atomica e backup. Nessun dato viene trasmesso.
 
-## Formati e profili
-
-Import: PNG, WebP, JPEG, SVG, GIF e MP4. Export immagini configurabile PNG/WebP/JPEG; metadata EVM/OpenSea, Solana/Metaplex, MultiversX e Cardano CIP-25; CSV, metadata aggregati, report, manifest e snapshot.
-
-Consulta [la guida italiana](docs/GUIDA_UTENTE.md) per il flusso completo e le limitazioni dichiarate.
+Consulta la [guida utente italiana](docs/GUIDA_UTENTE.md).
