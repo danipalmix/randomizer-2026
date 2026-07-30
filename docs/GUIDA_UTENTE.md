@@ -2,44 +2,42 @@
 
 ## 1. Impostazioni
 
-Definisci nome, simbolo, descrizione, quantità, ID iniziale, tela, seed, formato e profilo blockchain. **Salva** crea un file `.layerforge` e un backup affiancato. Annulla e Ripristina conservano le ultime 30 modifiche; l'autosalvataggio locale protegge dagli arresti.
+**Nuovo** crea un progetto v4, inizializza `Start → End`, apre automaticamente Organizza, centra il canvas e seleziona Start. Salva produce un file `.layerforge` con backup; Annulla e Ripristina conservano le modifiche del grafo.
 
-## 2. Organizza
+## 2. Organizza: un solo grafo
 
-Le schede superiori rappresentano gruppi o personaggi. `+` crea un grafo indipendente; i comandi accanto allo stato del grafo rinominano, duplicano o eliminano il gruppo.
+Ogni progetto possiede un unico canvas persistente. I nodi attraversati sono i layer combinati, più uscite sono alternative probabilistiche, più entrate ricongiungono i percorsi ed End conclude l'NFT.
 
-Seleziona un nodo layer e trascina file o una cartella nella dropzone. “Asset personalizzato” crea un trait senza immagine, presente soltanto nei metadata. “Gestisci” apre dettagli, rarità, asset e tabella delle regole.
+- Trascina l'area centrale di Start, End o di un layer per spostarlo liberamente.
+- Un clic breve sul `+` inserisce un layer in sequenza e apre Gestisci.
+- Trascina il `+` per collegarlo al punto di ingresso di un altro nodo.
+- Seleziona una linea per modificarne percentuale o destinazione; Canc la elimina.
+- Il comando `−`, Canc o il menu contestuale eliminano un layer e possono ricollegare i vicini.
+- **Snap** attiva o disattiva l'allineamento alla griglia.
+- **Organizza automaticamente** è l'unico comando che riposiziona più nodi.
 
-### Grafo avanzato
+I contenitori colorati sono soltanto etichette visuali nello stesso canvas: possono essere rinominati, duplicati o eliminati senza aprire altri editor.
 
-Il progetto demo contiene il caso completo:
+### Come funziona
 
-- Start → Background al 50%;
-- Background → tre rami al 33,3%, 33,3% e 33,4%;
-- ciascun ramo attraversa due layer;
-- Start → Layer 9 al 50%;
-- tutti e quattro i percorsi convergono in End.
+1. `Start → Background → Body → Eyes → End`: tutti i layer vengono combinati.
+2. `Body → Hat → End` e `Body → End`: Hat è opzionale secondo le percentuali.
+3. `Start → Human Body → Eyes → End` oppure `Start → Robot Body → Eyes → End`: viene scelta una variante e poi il percorso converge.
 
-Premi `+` sulla porta destra di un nodo e poi il nodo destinazione per creare un collegamento. Seleziona un nodo per modificare le sue uscite; **Distribuisci equamente** gestisce il resto decimale e **Normalizza a 100%** conserva i rapporti. Una somma errata blocca la generazione.
+La modalità semplice mostra la sequenza lineare; con diramazioni diventa una vista di sola lettura e non perde dati.
 
-Il canvas supporta trascinamento dei nodi, zoom con rotella, mini-mappa, centratura, adattamento e layout automatico. Il doppio clic apre la gestione layer. “Anteprima rapida” mostra il solo percorso estratto, probabilità complessiva, regole e metadata.
+## Migrazione
 
-### Modalità semplice
-
-Disattiva “Modalità avanzata” per una lista ordinata. Se esistono diramazioni la lista rimane consultabile in sola lettura, senza eliminare alcun dato.
+I progetti v3 con grafi separati vengono uniti automaticamente. Asset, rarità e regole restano invariati; i vecchi gruppi diventano contenitori visuali. Un avviso segnala i collegamenti da revisionare. Il file originale resta protetto dal backup creato al successivo salvataggio.
 
 ## 3. Anteprima
 
-Genera 1, 10, 25, 50 o 100 campioni. La galleria e il pannello dettagli mostrano token, probabilità, percorso, attributi e JSON. Lo stesso progetto e seed producono lo stesso risultato.
+L'anteprima usa lo stesso grafo del motore ed espone percorso, probabilità, attributi, regole e JSON. Lo stesso seed riproduce percorso e DNA.
 
 ## 4. Esporta
 
-Il controllo preliminare verifica grafo, regole e metadata. L'esportazione crea immagini composte con Sharp, JSON singoli e aggregati, CSV, rapporto percorsi, validazione, checksum, manifest e snapshot. Il nome e l'estensione URI coincidono con il file renderizzato.
-
-## Preparare gli asset
-
-Usa tele della stessa dimensione e trasparenza. Ordina le cartelle dal fondo al primo piano (`01 Sfondo`, `02 Corpo`). SVG viene rasterizzato da Sharp senza eseguire script. Gli originali non vengono modificati.
+L'export crea immagini PNG/WebP/JPEG con Sharp, metadata, CSV, rapporto percorsi, validazione, checksum, manifest e snapshot del grafo.
 
 ## Limiti dichiarati
 
-Il rendering statico PNG/WebP/JPEG è operativo. La composizione temporale di GIF/WebP animate/MP4 con FFmpeg, le quantità esatte con solver globale, la selezione multipla del canvas e la creazione ZIP non sono ancora disponibili. L'export produce una cartella completa. Il minting e gli upload restano intenzionalmente esterni e manuali.
+La composizione temporale FFmpeg, il solver globale per quantità esatte, la selezione multipla e ZIP non sono ancora disponibili. Minting e upload restano intenzionalmente esterni.

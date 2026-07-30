@@ -1,4 +1,4 @@
-import { outgoing, validateGraph } from './graph';
+import { distributeEvenly, outgoing, validateGraph } from './graph';
 import { emptyGraph, newProject, type Attribute, type Character, type Graph, type Item, type Layer, type Project, type Rule, type Trait } from './types';
 
 export class GenerationError extends Error { constructor(message: string, public diagnostics: string[] = []) { super(message); } }
@@ -16,8 +16,8 @@ function rulesValid(selections: Record<string, string | null>, rules: Rule[]) { 
 export function analyze(project: Project) {
   const contradictions: string[] = [];
   for (const rule of project.rules) if (project.rules.some(other => other.ifTrait === rule.ifTrait && other.thenTrait === rule.thenTrait && ['exclude', 'hide'].includes(rule.type) !== ['exclude', 'hide'].includes(other.type))) contradictions.push(`Regole incompatibili per ${rule.ifTrait} → ${rule.thenTrait}`);
-  const graphIssues = project.characters.flatMap(character => validateGraph(character.graph).filter(issue => issue.kind === 'error').map(issue => `${character.name}: ${issue.message}`));
-  const combinations = project.characters.reduce((total, character) => total + character.graph.nodes.filter(node => node.type === 'layer').reduce((amount, node) => { const layer = project.layers.find(item => item.id === node.layerId); return amount * Math.max(1, (layer?.traits.filter(trait => trait.enabled).length ?? 0) + (layer?.allowNone ? 1 : 0)); }, 1), 0);
+  const graphIssues = validateGraph(project.graph).filter(issue => issue.kind === 'error').map(issue => issue.message);
+  const combinations = project.graph.nodes.filter(node => node.type === 'layer').reduce((amount, node) => { const layer = project.layers.find(item => item.id === node.layerId); return amount * Math.max(1, (layer?.traits.filter(trait => trait.enabled).length ?? 0) + (layer?.allowNone ? 1 : 0)); }, 1);
   return { combinations, contradictions: [...new Set([...contradictions, ...graphIssues])] };
 }
 function selectLayer(layer: Layer, random: () => number) { if (random() > layer.presence) return null; return pick(layer.traits.filter(trait => trait.enabled), random)?.id ?? null; }
@@ -30,13 +30,13 @@ export function generate(project: Project, count = project.size): Item[] {
   let attempts = 0;
   while (items.length < count && attempts++ < Math.max(2000, count * 200)) {
     const character = pick(project.characters, random) ?? project.characters[0]; if (!character) throw new GenerationError('Nessun gruppo disponibile');
-    const walked = walkGraph(character.graph, random); const selections: Record<string, string | null> = {};
-    for (const nodeId of walked.path) { const node = character.graph.nodes.find(entry => entry.id === nodeId); const layer = project.layers.find(entry => entry.id === node?.layerId); if (layer) selections[layer.id] = selectLayer(layer, random); }
+    const walked = walkGraph(project.graph, random); const selections: Record<string, string | null> = {};
+    for (const nodeId of walked.path) { const node = project.graph.nodes.find(entry => entry.id === nodeId); const layer = project.layers.find(entry => entry.id === node?.layerId); if (layer) selections[layer.id] = selectLayer(layer, random); }
     const rules = [...project.rules, ...(character.rules ?? [])];
     for (const rule of rules.filter(entry => entry.enabled !== false && ['force', 'show'].includes(entry.type))) if (Object.values(selections).includes(rule.ifTrait)) { const layer = project.layers.find(entry => entry.traits.some(trait => trait.id === rule.thenTrait)); if (layer) selections[layer.id] = rule.thenTrait; }
     for (const rule of rules.filter(entry => entry.enabled !== false && entry.type === 'hide')) if (Object.values(selections).includes(rule.ifTrait)) { const layer = project.layers.find(entry => entry.traits.some(trait => trait.id === rule.thenTrait)); if (layer) selections[layer.id] = null; }
     if (!rulesValid(selections, rules)) continue;
-    const dna = [character.id, `path:${walked.path.join('>')}`, ...walked.path.map(nodeId => { const node = character.graph.nodes.find(entry => entry.id === nodeId); return node?.layerId ? `${node.layerId}:${selections[node.layerId] ?? 'none'}` : nodeId; })].join('|');
+    const dna = [character.id, `path:${walked.path.join('>')}`, ...walked.path.map(nodeId => { const node = project.graph.nodes.find(entry => entry.id === nodeId); return node?.layerId ? `${node.layerId}:${selections[node.layerId] ?? 'none'}` : nodeId; })].join('|');
     if (dnas.has(dna)) continue; dnas.add(dna); const tokenId = nextId(project, items); const traits = selectedTraits(project, selections);
     items.push({ tokenId, name: project.nameTemplate.replace('{{collection}}', project.name).replace('{{id}}', String(tokenId)), characterId: character.id, selections, dna, path: walked.path, pathProbability: walked.probability * character.weight / Math.max(1, project.characters.reduce((sum, value) => sum + value.weight, 0)), appliedRules: rules.filter(rule => Object.values(selections).includes(rule.ifTrait)).map(rule => rule.id), attributes: [{ trait_type: 'Gruppo', value: character.name }, ...traits.map(trait => attributeFor(project, trait))] });
   }
@@ -44,5 +44,29 @@ export function generate(project: Project, count = project.size): Item[] {
   return items.sort((a, b) => a.tokenId - b.tokenId);
 }
 function nextId(project: Project, items: Item[]) { let id = project.startId; const used = new Set(items.map(item => item.tokenId)); while (used.has(id)) id++; return id; }
-export function migrateProject(input: Partial<Project> & { version?: number }): Project { const base = newProject(); const merged = { ...base, ...input, version: 3 as const }; merged.characters = (input.characters?.length ? input.characters : base.characters).map(character => ({ ...character, graph: character.graph ?? linearGraph(character.layerIds ?? []) })); return merged; }
+export function migrateProject(input: Partial<Project> & { version?: number }): Project {
+  const base = newProject(); const legacyCharacters = input.characters?.length ? input.characters : base.characters;
+  let graph = input.graph;
+  const warnings: string[] = [...(input.migrationWarnings ?? [])];
+  if (!graph) {
+    const legacyGraphs = legacyCharacters.map(character => character.graph).filter(Boolean);
+    graph = mergeLegacyGraphs(legacyGraphs, input.layers ?? []);
+    if (legacyGraphs.length > 1) warnings.push('I vecchi grafi separati sono stati uniti. Verifica i collegamenti fra i percorsi importati.');
+  }
+  if (!graph?.nodes.some(node => node.type === 'start') || !graph.nodes.some(node => node.type === 'end')) graph = emptyGraph();
+  if (!(input.layers?.length) && graph.edges.length === 0) { const start = graph.nodes.find(node => node.type === 'start')!, end = graph.nodes.find(node => node.type === 'end')!; graph = { ...graph, edges: [{ id: crypto.randomUUID(), source: start.id, target: end.id, probability: 100 }] }; }
+  const merged: Project = { ...base, ...input, version: 4, graph, visualGroups: input.visualGroups ?? legacyCharacters.filter(character => character.id !== 'default').map((character, index) => ({ id: character.id, name: character.name, color: character.color ?? '#8b7cf6', nodeIds: graph!.nodes.filter(node => node.layerId && character.layerIds.includes(node.layerId)).map(node => node.id), x: 180 + index * 30, y: 100 + index * 30, width: 500, height: 300 })), migrationWarnings: warnings, characters: legacyCharacters.map(character => ({ ...character, graph })) };
+  return merged;
+}
 function linearGraph(layerIds: string[]): Graph { const graph = emptyGraph(); graph.nodes = [graph.nodes[0], ...layerIds.map((layerId, index) => ({ id: `node-${layerId}`, type: 'layer' as const, layerId, x: 240 + index * 220, y: 260 })), { ...graph.nodes[1], x: 240 + layerIds.length * 220 }]; graph.edges = graph.nodes.slice(0, -1).map((node, index) => ({ id: `edge-${node.id}`, source: node.id, target: graph.nodes[index + 1].id, probability: 100 })); return graph; }
+
+function mergeLegacyGraphs(graphs: Graph[], layerIds: { id: string }[]): Graph {
+  if (!graphs.length) return layerIds.length ? linearGraph(layerIds.map(layer => layer.id)) : emptyGraph();
+  if (graphs.length === 1) return graphs[0];
+  const merged = emptyGraph(); merged.edges = []; let offset = 0;
+  for (const graph of graphs) { const map = new Map<string, string>(); for (const node of graph.nodes) { if (node.type === 'start' || node.type === 'end') continue; const id = `${node.id}-${offset}`; map.set(node.id, id); merged.nodes.push({ ...node, id, x: node.x, y: node.y + offset * 360 }); }
+    const start = graph.nodes.find(node => node.type === 'start')?.id, end = graph.nodes.find(node => node.type === 'end')?.id;
+    for (const edge of graph.edges) { const source = edge.source === start ? 'start' : map.get(edge.source); const target = edge.target === end ? 'end' : map.get(edge.target); if (source && target) merged.edges.push({ ...edge, id: `${edge.id}-${offset}`, source, target }); } offset++; }
+  for (const nodeId of ['start', ...merged.nodes.filter(node => node.type === 'layer').map(node => node.id)]) { const edges = outgoing(merged, nodeId); if (edges.length) merged.edges = [...merged.edges.filter(edge => edge.source !== nodeId), ...distributeEvenly(edges)]; }
+  return merged;
+}

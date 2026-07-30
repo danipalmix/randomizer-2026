@@ -1,41 +1,39 @@
 # LayerForge NFT Studio
 
-LayerForge è uno studio desktop **offline, senza account e senza telemetria** per creare collezioni generative. Il flusso italiano in quattro fasi — Impostazioni, Organizza, Anteprima, Esporta — combina un grafo probabilistico ramificato, regole, DNA deterministico, rendering Sharp e metadata multichain.
+Applicazione Electron/React offline per collezioni generative. Ogni progetto v4 usa **un solo grafo persistente**: i layer attraversati vengono composti in ordine, le uscite multiple creano alternative probabilistiche e le entrate multiple convergono nello stesso percorso.
 
-## Funzioni principali
+## Editor visuale
 
-- grafo persistente con diramazioni, convergenze, percentuali modificabili e normalizzazione esatta;
-- gruppi/personaggi con peso, colore, grafo e regole indipendenti;
-- modalità semplice lineare e modalità avanzata senza perdita di dati;
-- import di PNG, WebP, JPEG, SVG, GIF e MP4 tramite selezione o drag-and-drop;
-- asset metadata-only testuali, numerici, percentuali, intervalli e valori fissi;
-- anteprima rapida con percorso, probabilità complessiva, regole, trait e JSON;
-- generazione deterministica con seed, percorsi nel DNA e controllo duplicati;
-- profili EVM/OpenSea, Solana/Metaplex, MultiversX e Cardano CIP-25;
-- rendering PNG/WebP/JPEG, CSV, report percorsi, checksum SHA-256, manifest e snapshot.
+- `Start → End` viene creato automaticamente per ogni nuovo progetto;
+- clic sul `+`: inserimento rapido di un nuovo layer;
+- trascinamento dal `+`: collegamento manuale con anteprima;
+- Start, End e layer sono liberamente spostabili, con snap opzionale;
+- selezione, riconnessione, percentuale, eliminazione e menu contestuale degli archi;
+- eliminazione layer con riconnessione opzionale e supporto Annulla;
+- contenitori visuali nello stesso canvas, senza grafi separati;
+- migrazione conservativa dei precedenti grafi per-personaggio.
 
-## Avvio
+## Avvio e verifica
 
 ```bash
 npm install
-npm run dev       # interfaccia web, filesystem nativo disabilitato
-npm run electron  # applicazione desktop completa
+npm test
+npm run typecheck
+npm run lint
+npm run build
+npm run electron
 ```
 
-## Verifica e distribuzione Windows
+Per produrre installer NSIS e portabile Windows:
 
 ```bash
-npm test
-npm run lint
-npm run typecheck
-npm run build
 npm run dist:win
 ```
 
-Gli installer NSIS e portabile vengono generati in `release/`. Dopo l'installazione non è richiesta alcuna connessione Internet.
+Gli artefatti vengono scritti in `release/`. Dopo l'installazione non è necessaria Internet.
 
-## Sicurezza
+## Privacy e sicurezza
 
-Electron usa `contextIsolation`, sandbox, renderer senza Node, blocco di navigazioni esterne e un preload ristretto. I percorsi sono autorizzati solo dopo una selezione esplicita; i progetti usano scrittura atomica e backup. Nessun dato viene trasmesso.
+Nessun account, server, analytics o upload. Electron usa `contextIsolation`, sandbox, renderer senza Node, preload ristretto, navigazioni esterne bloccate, percorsi autorizzati e scritture atomiche. I progetti precedenti alla v4 ricevono un backup prima della migrazione.
 
-Consulta la [guida utente italiana](docs/GUIDA_UTENTE.md).
+Consulta la [guida utente](docs/GUIDA_UTENTE.md).
