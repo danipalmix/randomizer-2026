@@ -1,0 +1,10 @@
+export type Trait={id:string;name:string;metadataName:string;path?:string;weight:number;enabled:boolean;exact?:number;transform?:{x:number;y:number;scale:number;rotation:number;opacity:number;blend:string}};
+export type Layer={id:string;name:string;presence:number;allowNone:boolean;traits:Trait[]};
+export type RuleType='exclude'|'require'|'force';
+export type Rule={id:string;type:RuleType;ifTrait:string;thenTrait:string};
+export type Character={id:string;name:string;weight:number;layerIds:string[]};
+export type Attribute={trait_type:string;value:string|number;display_type?:'number'|'boost_number'|'boost_percentage'|'date'};
+export type OneOfOne={tokenId:number;name:string;description:string;assetPath?:string;attributes:Attribute[]};
+export type Project={version:2;name:string;description:string;symbol:string;externalUrl:string;size:number;startId:0|1;nameTemplate:string;width:number;height:number;background:string;format:'png'|'webp'|'jpeg';quality:number;seed:string;profile:'evm'|'solana'|'multiversx'|'cardano';imageUri:string;animationUri:string;metadataUri:string;layers:Layer[];rules:Rule[];characters:Character[];oneOfOnes:OneOfOne[];royaltyBps:number;creators:{address:string;share:number}[];policyId:string};
+export type Item={tokenId:number;name:string;characterId:string;selections:Record<string,string|null>;dna:string;attributes:Attribute[];special?:boolean};
+export const newProject=():Project=>({version:2,name:'La mia collezione',description:'Creata offline con LayerForge',symbol:'LF',externalUrl:'',size:25,startId:1,nameTemplate:'{{collection}} #{{id}}',width:1000,height:1000,background:'#101525',format:'png',quality:90,seed:'layerforge-2026',profile:'evm',imageUri:'ipfs://CID_IMMAGINI',animationUri:'',metadataUri:'ipfs://CID_METADATA',layers:[],rules:[],characters:[{id:'default',name:'Personaggio',weight:1,layerIds:[]}],oneOfOnes:[],royaltyBps:500,creators:[],policyId:''});
